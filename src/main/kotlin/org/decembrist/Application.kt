@@ -11,10 +11,9 @@ fun main() {
         config = HoconApplicationConfig(ConfigFactory.load())
 
         module {
-            configureRouting()
+            index()
             configureSecurity()
             configureSerialization()
-            configureTemplating()
         }
 
         connector {
