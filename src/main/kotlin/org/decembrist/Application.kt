@@ -1,14 +1,25 @@
 package org.decembrist
 
+import com.typesafe.config.ConfigFactory
+import io.ktor.config.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import org.decembrist.plugins.*
 
 fun main() {
-    embeddedServer(Netty, port = 8080, host = "0.0.0.0") {
-        configureRouting()
-        configureSecurity()
-        configureSerialization()
-        configureTemplating()
-    }.start(wait = true)
+    embeddedServer(Netty, environment = applicationEngineEnvironment {
+        config = HoconApplicationConfig(ConfigFactory.load())
+
+        module {
+            configureRouting()
+            configureSecurity()
+            configureSerialization()
+            configureTemplating()
+        }
+
+        connector {
+            port = config.property("ktor.deployment.port").getString().toInt()
+            host = config.property("ktor.deployment.host").getString()
+        }
+    }).start(wait = true)
 }
