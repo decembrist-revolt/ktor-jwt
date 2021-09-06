@@ -14,7 +14,7 @@ fun Application.helloRoutes() {
             val data = listOf("Hello, reactive!", "More then one", "Third post", "Fourth post", "Fifth post")
                 .drop(start)
                 .take(count)
-                .map(::MessageDto)
+                .map { MessageDto(null, it) }
             call.respond(data)
         }
     }

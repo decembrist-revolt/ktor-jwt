@@ -18,8 +18,10 @@ fun main() {
                 mustacheFactory = DefaultMustacheFactory("templates")
             }
 
+            connectDatabase()
             index()
             helloRoutes()
+            controllerRoutes()
             configureSecurity()
             configureSerialization()
         }

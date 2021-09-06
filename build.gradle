@@ -1,7 +1,10 @@
+import nu.studer.gradle.jooq.JooqEdition
+
 plugins {
     id 'application'
     id 'org.jetbrains.kotlin.jvm' version '1.5.30'
     id 'org.jetbrains.kotlin.plugin.serialization' version '1.5.30'
+    id 'nu.studer.jooq' version '6.0.1'
 }
 
 group "org.decembrist"
@@ -20,6 +23,50 @@ dependencies {
     implementation "io.ktor:ktor-mustache:$ktor_version"
     implementation "io.ktor:ktor-server-netty:$ktor_version"
     implementation "ch.qos.logback:logback-classic:$logback_version"
+    implementation "org.jooq:jooq:3.15.2"
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.5.2'
+    implementation 'io.r2dbc:r2dbc-postgresql:0.8.8.RELEASE'
+
+    jooqGenerator 'org.postgresql:postgresql:42.2.23'
+
     testImplementation "io.ktor:ktor-server-tests:$ktor_version"
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+}
+
+
+jooq {
+    version = '3.15.1'
+    edition = JooqEdition.OSS
+
+    configurations {
+        main {
+            generationTool {
+                logging = org.jooq.meta.jaxb.Logging.WARN
+                jdbc {
+                    driver = 'org.postgresql.Driver'
+                    url = 'jdbc:postgresql://localhost:5432/catalizator'
+                    user = 'postgres'
+                    password = '123'
+                }
+                generator {
+                    name = "org.jooq.codegen.KotlinGenerator"
+                    database {
+                        inputSchema = 'public'
+                    }
+                    generate {
+                        deprecated = false
+                        records = true
+                        immutablePojos = false
+                        fluentSetters = false
+                        daos = false
+                    }
+                    target {
+                        packageName = 'org.decembrist.generated'
+                        directory = 'src/generated/kotlin'
+                    }
+                    strategy.name = "org.jooq.codegen.DefaultGeneratorStrategy"
+                }
+            }
+        }
+    }
 }
