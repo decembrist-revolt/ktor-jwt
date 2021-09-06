@@ -1,10 +1,16 @@
-import nu.studer.gradle.jooq.JooqEdition
+buildscript {
+    dependencies {
+        classpath "com.typesafe:config:$typesafe_config"
+        classpath "org.postgresql:postgresql:$postgresql_jdbc"
+    }
+}
 
 plugins {
     id 'application'
     id 'org.jetbrains.kotlin.jvm' version '1.5.30'
     id 'org.jetbrains.kotlin.plugin.serialization' version '1.5.30'
     id 'nu.studer.jooq' version '6.0.1'
+    id "org.flywaydb.flyway" version "7.14.1"
 }
 
 group "org.decembrist"
@@ -23,16 +29,25 @@ dependencies {
     implementation "io.ktor:ktor-mustache:$ktor_version"
     implementation "io.ktor:ktor-server-netty:$ktor_version"
     implementation "ch.qos.logback:logback-classic:$logback_version"
-    implementation "org.jooq:jooq:3.15.2"
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.5.2'
-    implementation 'io.r2dbc:r2dbc-postgresql:0.8.8.RELEASE'
+    implementation "org.jooq:jooq:$jooq_version"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$kotlin_coroutines_version"
+    implementation "io.r2dbc:r2dbc-postgresql:$postgresql_r2dbc"
 
-    jooqGenerator 'org.postgresql:postgresql:42.2.23'
+    jooqGenerator "org.postgresql:postgresql:$postgresql_jdbc"
 
     testImplementation "io.ktor:ktor-server-tests:$ktor_version"
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
 }
 
+import com.typesafe.config.ConfigFactory
+import com.typesafe.config.Config
+import java.io.File
+import nu.studer.gradle.jooq.JooqEdition
+
+def configFile = new File("$projectDir/src/main/resources/application.conf")
+Config config = ConfigFactory.parseFile(configFile)
+
+def databaseUrl = config.getString("r2dbc.url").replace("r2dbc", "jdbc")
 
 jooq {
     version = '3.15.1'
@@ -44,9 +59,9 @@ jooq {
                 logging = org.jooq.meta.jaxb.Logging.WARN
                 jdbc {
                     driver = 'org.postgresql.Driver'
-                    url = 'jdbc:postgresql://localhost:5432/catalizator'
-                    user = 'postgres'
-                    password = '123'
+                    url = databaseUrl
+                    user = config.getString("r2dbc.username")
+                    password = config.getString("r2dbc.password")
                 }
                 generator {
                     name = "org.jooq.codegen.KotlinGenerator"
@@ -69,4 +84,14 @@ jooq {
             }
         }
     }
+}
+
+flyway {
+    url = databaseUrl
+    user = config.getString("r2dbc.username")
+    password = config.getString("r2dbc.password")
+}
+
+build.configure {
+    dependsOn generateJooq
 }
