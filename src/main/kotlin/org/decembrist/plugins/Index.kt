@@ -5,7 +5,7 @@ import io.ktor.mustache.*
 import io.ktor.response.*
 import io.ktor.routing.*
 
-fun Application.index() {
+fun Application.indexRoutes() {
 
     routing {
         get("/") {

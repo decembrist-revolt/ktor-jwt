@@ -6,6 +6,4 @@ import kotlinx.serialization.Serializable
 data class MessageDto(
     val id: Long? = null,
     val data: String,
-) {
-    constructor(data: String) : this(null, data)
-}
+)
